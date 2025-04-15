@@ -1,35 +1,72 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import {
+  addEdge,
+  Background,
+  BackgroundVariant,
+  Controls,
+  MiniMap,
+  ReactFlow,
+  useEdgesState,
+  useNodesState,
+  Connection,
+  Edge,
+} from '@xyflow/react';
+import styles from './app.module.scss';
+import '@xyflow/react/dist/style.css';
+import { useCallback } from 'react';
+import { Freeze, FreezePW } from './components/shapes';
+
+const initialNodes = [
+  {
+    id: 'node-1',
+    type: 'freeze',
+    position: { x: 0, y: 0 },
+    data: { label: 'freeze-node' },
+  },
+  {
+    id: 'node-2',
+    type: 'freeze-pw',
+    position: { x: 300, y: 0 },
+    data: { label: 'freeze-pw-node' },
+  },
+];
+
+const initialEdges: Edge[] = [];
+
+const nodeTypes = {
+  freeze: Freeze,
+  'freeze-pw': FreezePW,
+};
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
+  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+
+  const onConnect = useCallback(
+    (params: Connection) => {
+      setEdges((eds) => addEdge({ ...params, type: 'default' }, eds));
+    },
+    [setEdges]
+  );
 
   return (
     <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+      <div className={styles.root}>
+        <ReactFlow
+          nodes={nodes}
+          edges={edges}
+          onNodesChange={onNodesChange}
+          onEdgesChange={onEdgesChange}
+          onConnect={onConnect}
+          nodeTypes={nodeTypes}
+          fitView
+        >
+          <Controls />
+          <MiniMap />
+          <Background variant={BackgroundVariant.Dots} gap={12} size={1} />
+        </ReactFlow>
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
     </>
-  )
+  );
 }
 
-export default App
+export default App;
